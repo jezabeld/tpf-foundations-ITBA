@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  api:
+    build: ./api
+    ports:
+      - "5000:5000"
+    environment: 
+      - FLASK_APP=main.py
+      - FLASK_ENV=development
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=postgres
+      - DATABASE_URL=postgres
+    volumes:
+      - ./api/src:/usr/src/app
+    depends_on:
+      - postgres
+      - load_data
+
+  load_data:
+    build: ./load_data
+    environment: 
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=postgres
+      - DATABASE_URL=postgres
+      - STATS_FILE=https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.json
+      - VACCINES_FILE=https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations-by-manufacturer.csv
+    volumes:
+      - ./load_data/src:/usr/src/app
+    depends_on:
+      - postgres
+
+  postgres:
+    build: ./database
+    image: postgres_foundations
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
